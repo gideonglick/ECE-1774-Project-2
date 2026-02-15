@@ -1,33 +1,82 @@
-from bus import Bus
-from generator import Generator
-from load import Load
-from transformer import Transformer
-from transmissionLine import TransmissionLine
+from circuit import Circuit
 
 def main():
 
-    #Testing Bus class
-    bus1 = Bus("Bus1", 20.0)
-    bus2 = Bus("Bus2", 230.0)
+## circuit class test
+    circuit1 = Circuit("Test Circuit")
 
-    print(bus1.name, bus1.nominal_kv, bus1.bus_index)
-    print(bus2.name, bus2.nominal_kv, bus2.bus_index)
+    print(circuit1.name)
+    print(type(circuit1.name))
 
-    #Testing Transformer Class
-    t1 = Transformer("T1", "Bus1", "Bus2", .01, .1)
-    print(t1.name, t1.bus1_name, t1.bus2_name, t1.r, t1.x)
+    print(circuit1.buses)
+    print(type(circuit1.buses))
 
-    #Testing Transmission Line class
-    line1 = TransmissionLine("Line1", "Bus1", "Bus2", .02, .25, 0, .04)
-    print(line1.name, line1.bus1_name, line1.bus2_name, line1.r, line1.x, line1.g, line1.b)
+    print(circuit1.transformers)
+    print(circuit1.transmission_lines)
+    print(circuit1.generators)
+    print(circuit1.loads)
 
-    #Testing Load Class
-    load1 = Load("Load1", "Bus2", 50.0, 30.0)
-    print(load1.name, load1.bus1_name, load1.mw, load1.mvar)
+## add bus test
+    circuit1.add_bus("Bus 1", 20.0)
+    circuit1.add_bus("Bus 2", 230.0)
 
-    #Testing Generator Class
-    gen1 = Generator("G1", "Bus1", 1.04, 100.0)
-    print(gen1.name, gen1.bus1_name, gen1.voltage_setpoint, gen1.mw_setpoint)
+    print(list(circuit1.buses.keys()))
+    print(circuit1.buses["Bus 1"].name, circuit1.buses["Bus 1"].nominal_kv)
+
+## add transformer test
+    circuit1.add_transformer("T1", "Bus 1", "Bus 2", 0.01, 0.10)
+
+    print(list(circuit1.transformers.keys()))
+
+    print(
+        circuit1.transformers["T1"].name,
+        circuit1.transformers["T1"].bus1_name,
+        circuit1.transformers["T1"].bus2_name,
+        circuit1.transformers["T1"].r,
+        circuit1.transformers["T1"].x
+    )
+
+## add transmission_line test
+    circuit1.add_transmission_line(
+        "Line 1", "Bus 1", "Bus 2",0.02, 0.25, 0.0, 0.04
+    )
+
+    print(list(circuit1.transmission_lines.keys()))
+
+    print(
+        circuit1.transmission_lines["Line 1"].name,
+        circuit1.transmission_lines["Line 1"].bus1_name,
+        circuit1.transmission_lines["Line 1"].bus2_name,
+        circuit1.transmission_lines["Line 1"].r,
+        circuit1.transmission_lines["Line 1"].x,
+        circuit1.transmission_lines["Line 1"].g,
+        circuit1.transmission_lines["Line 1"].b
+    )
+
+#add load test
+    circuit1.add_load("Load 1", "Bus 2", 50.0, 30.0)
+
+    print(list(circuit1.loads.keys()))
+
+    print(
+        circuit1.loads["Load 1"].name,
+        circuit1.loads["Load 1"].bus1_name,
+        circuit1.loads["Load 1"].mw,
+        circuit1.loads["Load 1"].mvar
+    )
+
+#add generator test
+    circuit1.add_generator("G1", "Bus 1", 1.04, 100.0)
+
+    print(list(circuit1.generators.keys()))
+
+    print(
+        circuit1.generators["G1"].name,
+        circuit1.generators["G1"].bus1_name,
+        circuit1.generators["G1"].voltage_setpoint,
+        circuit1.generators["G1"].mw_setpoint
+    )
+
 
 if __name__ == "__main__":
     main()

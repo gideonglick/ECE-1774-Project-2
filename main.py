@@ -1,82 +1,32 @@
 from circuit import Circuit
+from transformer import Transformer
+from transmissionLine import TransmissionLine
 
 def main():
 
-## circuit class test
-    circuit1 = Circuit("Test Circuit")
+    transformer1 = Transformer("T1", "Bus 1", "Bus 2", 0.01, 0.10)
+    print(transformer1.Yseries)
+    print(transformer1.calc_yprim())
 
-    print(circuit1.name)
-    print(type(circuit1.name))
+    transformer2 = Transformer("T2", "Bus A", "Bus B", 0.0, 0.20)
+    print(transformer2.Yseries)
+    print(transformer2.calc_yprim())
 
-    print(circuit1.buses)
-    print(type(circuit1.buses))
+    transformer3 = Transformer("T3", "Bus X", "Bus Y", 0.5, 0.01)
+    print(transformer3.Yseries)
+    print(transformer3.calc_yprim())
 
-    print(circuit1.transformers)
-    print(circuit1.transmission_lines)
-    print(circuit1.generators)
-    print(circuit1.loads)
+    line1 = TransmissionLine("Line 1", "Bus 1", "Bus 2", 0.02, 0.25, 0.0, 0.04)
+    print(line1.Yseries, line1.Yshunt)
+    print(line1.calc_yprim())
 
-## add bus test
-    circuit1.add_bus("Bus 1", 20.0)
-    circuit1.add_bus("Bus 2", 230.0)
+    line2 = TransmissionLine("Line 2", "Bus 3", "Bus 4", 0.05, 0.20, 0.0, 0.0)
+    print(line2.Yseries, line2.Yshunt)
+    print(line2.calc_yprim())
 
-    print(list(circuit1.buses.keys()))
-    print(circuit1.buses["Bus 1"].name, circuit1.buses["Bus 1"].nominal_kv)
-
-## add transformer test
-    circuit1.add_transformer("T1", "Bus 1", "Bus 2", 0.01, 0.10)
-
-    print(list(circuit1.transformers.keys()))
-
-    print(
-        circuit1.transformers["T1"].name,
-        circuit1.transformers["T1"].bus1_name,
-        circuit1.transformers["T1"].bus2_name,
-        circuit1.transformers["T1"].r,
-        circuit1.transformers["T1"].x
-    )
-
-## add transmission_line test
-    circuit1.add_transmission_line(
-        "Line 1", "Bus 1", "Bus 2",0.02, 0.25, 0.0, 0.04
-    )
-
-    print(list(circuit1.transmission_lines.keys()))
-
-    print(
-        circuit1.transmission_lines["Line 1"].name,
-        circuit1.transmission_lines["Line 1"].bus1_name,
-        circuit1.transmission_lines["Line 1"].bus2_name,
-        circuit1.transmission_lines["Line 1"].r,
-        circuit1.transmission_lines["Line 1"].x,
-        circuit1.transmission_lines["Line 1"].g,
-        circuit1.transmission_lines["Line 1"].b
-    )
-
-#add load test
-    circuit1.add_load("Load 1", "Bus 2", 50.0, 30.0)
-
-    print(list(circuit1.loads.keys()))
-
-    print(
-        circuit1.loads["Load 1"].name,
-        circuit1.loads["Load 1"].bus1_name,
-        circuit1.loads["Load 1"].mw,
-        circuit1.loads["Load 1"].mvar
-    )
-
-#add generator test
-    circuit1.add_generator("G1", "Bus 1", 1.04, 100.0)
-
-    print(list(circuit1.generators.keys()))
-
-    print(
-        circuit1.generators["G1"].name,
-        circuit1.generators["G1"].bus1_name,
-        circuit1.generators["G1"].voltage_setpoint,
-        circuit1.generators["G1"].mw_setpoint
-    )
-
+    line3 = TransmissionLine("Line 3", "Bus 5", "Bus 6", 0.01, 0.15, 0.0, 0.20)
+    print(line3.Yseries, line3.Yshunt)
+    print(line3.calc_yprim())
 
 if __name__ == "__main__":
     main()

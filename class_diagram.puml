@@ -40,10 +40,26 @@ class Generator {
   +mw_setpoint : float
 }
 
-' Relationships (your classes store bus names as strings, so these are dependencies)
-Transformer ..> Bus : references (bus1_name, bus2_name)
-TransmissionLine ..> Bus : references (bus1_name, bus2_name)
-Load ..> Bus : references (bus1_name)
-Generator ..> Bus : references (bus1_name)
+class Circuit {
+  +name: str
+  +buses: Dict[str, Bus]
+  +loads: Dict[str, Load]
+  +generators: Dict[str, Load]
+  +transmission_lines: Dict[str, TransmissionLine]
+  +transformers: Dict[str, Transformer]
+  +add_bus(self, name: str, nominal_kv: float)
+  +add_transformer(self, name: str, bus1_name: str, bus2_name: str, r: float, x: float)
+  +add_transmission_line(self, name:str, bus1_name:str, bus2_name:str, r:float, x:float, g:float, b:float):
+  +add_generator(self, name: str, bus1_name, voltage_setpoint:float, mw_setpoint: float)
+  +add_load(self, name: str, bus1_name: str, mw:float, mvar:float)
+  }
 
+
+
+' Relationships (your classes store bus names as strings, so these are dependencies)
+Transformer ..> Circuit : contains
+TransmissionLine ..> Circuit : contains
+Load ..> Circuit : contains
+Generator ..> Circuit : contains
+Bus ..> Circuit : contains
 @enduml

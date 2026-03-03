@@ -1,5 +1,22 @@
 @startuml
-title Power System Data Model (Milestone 1)
+title Power System Data Model (Updated with Circuit)
+
+class Circuit {
+  +name : str
+  +buses : Dict[str, Bus]
+  +loads : Dict[str, Load]
+  +generators : Dict[str, Generator]
+  +transmission_lines : Dict[str, TransmissionLine]
+  +transformers : Dict[str, Transformer]
+  +ybus : pd.DataFrame
+
+  +add_bus(name: str, nominal_kv: float)
+  +add_transformer(name: str, bus1_name: str, bus2_name: str, r: float, x: float)
+  +add_transmission_line(name: str, bus1_name: str, bus2_name: str, r: float, x: float, g: float, b: float)
+  +add_generator(name: str, bus1_name: str, voltage_setpoint: float, mw_setpoint: float)
+  +add_load(name: str, bus1_name: str, mw: float, mvar: float)
+  +calc_ybus()
+}
 
 class Bus {
   +bus_counter : int {static}
@@ -14,7 +31,9 @@ class Transformer {
   +bus2_name : str
   +r : float
   +x : float
-  +calc_yprim()
+  +z_series : complex
+  +Yseries : complex
+  +calc_yprim() : pd.DataFrame
 }
 
 class TransmissionLine {
@@ -25,7 +44,10 @@ class TransmissionLine {
   +x : float
   +g : float
   +b : float
-  +calc_yprim()
+  +z_series : complex
+  +Yseries : complex
+  +Yshunt : complex
+  +calc_yprim() : pd.DataFrame
 }
 
 class Load {
@@ -42,7 +64,14 @@ class Generator {
   +mw_setpoint : float
 }
 
-' Relationships (your classes store bus names as strings, so these are dependencies)
+' --- Hierarchy / ownership: Circuit contains many of each element ---
+Circuit *-- "0..*" Bus
+Circuit *-- "0..*" Transformer
+Circuit *-- "0..*" TransmissionLine
+Circuit *-- "0..*" Load
+Circuit *-- "0..*" Generator
+
+' --- Dependencies: elements reference buses by name (strings) ---
 Transformer ..> Bus : references (bus1_name, bus2_name)
 TransmissionLine ..> Bus : references (bus1_name, bus2_name)
 Load ..> Bus : references (bus1_name)

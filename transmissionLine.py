@@ -17,13 +17,11 @@ class TransmissionLine:
         self.Yshunt = complex(self.g, self.b)
 
     def calc_yprim(self) -> pd.DataFrame:
-        Yser = self.Yseries
-        Yshu = self.Yshunt
         labels = [self.bus1_name, self.bus2_name]
 
         yprim = pd.DataFrame(
-            [[Yser+Yshu/2, -Yser],
-            [-Yser, Yser+Yshu/2]],
+            [[self.Yseries+self.Yshunt/2, -self.Yseries],
+            [-self.Yseries, self.Yseries+self.Yshunt/2]],
             index=labels,
             columns=labels,
             )

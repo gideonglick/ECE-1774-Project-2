@@ -4,7 +4,8 @@ from load import Load
 from generator import Generator
 from transformer import Transformer
 from transmissionLine import TransmissionLine
-
+import numpy as np
+import pandas as pd
 class Circuit:
 
     def __init__(self, name : str):
@@ -60,6 +61,38 @@ class Circuit:
 
         self.loads[name] = Load(name, bus1_name, mw, mvar)
 
+    def calc_ybus(self):
+        bus_names = list(self.buses.keys())
+        N = len(bus_names)
+        bus_index = {name: i for i, name in enumerate(bus_names)}
+
+        ybus_matrix = np.zeros((N, N), dtype=complex)
+
+        for transformer in self.transformers.values():
+            yprim = transformer.calc_yprim()
+            i = bus_index[transformer.bus1_name]
+            j = bus_index[transformer.bus2_name]
+
+            ybus_matrix[i, i] += yprim.iloc[0, 0]  # Y11
+            ybus_matrix[i, j] += yprim.iloc[0, 1]  # Y12
+            ybus_matrix[j, i] += yprim.iloc[1, 0]  # Y21
+            ybus_matrix[j, j] += yprim.iloc[1, 1]
+
+        for line in self.transmission_lines.values():
+            yprim = line.calc_yprim()
+            i = bus_index[line.bus1_name]
+            j = bus_index[line.bus2_name]
+
+            ybus_matrix[i, i] += yprim.iloc[0, 0]
+            ybus_matrix[i, j] += yprim.iloc[0, 1]
+            ybus_matrix[j, i] += yprim.iloc[1, 0]
+            ybus_matrix[j, j] += yprim.iloc[1, 1]
+
+        self.ybus = pd.DataFrame(
+            ybus_matrix,
+            index=bus_names,
+            columns=bus_names
+        )
 if __name__ == "__main__":
 
     circuit1 = Circuit("Test Circuit")
@@ -117,3 +150,6 @@ if __name__ == "__main__":
         circuit1.generators["G1"].voltage_setpoint,
         circuit1.generators["G1"].mw_setpoint
     )
+
+    circuit1.calc_ybus()
+    print(circuit1.ybus)

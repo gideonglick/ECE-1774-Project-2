@@ -31,3 +31,34 @@ class Settings:
             Qi += Vi * Vj * (Gij * np.sin(delta_ij) - Bij * np.cos(delta_ij))
 
         return Pi, Qi
+
+    def compute_power_mismatch(self, buses, ybus, voltages):
+        mismatch_vector = []
+
+        for bus in buses.values():
+            if bus.bus_type == "Slack":
+                continue
+
+            P_calc, Q_calc = self.compute_power_injection(bus, ybus, voltages)
+
+            P_spec = 0.0
+            Q_spec = 0.0
+
+            for generator in self.circuit.generators.values():
+                if generator.bus1_name == bus.name:
+                    P_spec += generator.p
+
+            for load in self.circuit.loads.values():
+                if load.bus1_name == bus.name:
+                    P_spec -= load.calc_p()
+                    Q_spec -= load.calc_q()
+
+            real_power_mismatch = P_spec - P_calc
+
+            if bus.bus_type == "PQ":
+                reactive_power_mismatch = Q_spec - Q_calc
+                mismatch_vector += [real_power_mismatch, reactive_power_mismatch]
+            else:
+                mismatch_vector += [real_power_mismatch]
+
+        return np.array(mismatch_vector)

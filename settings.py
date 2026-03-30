@@ -1,15 +1,20 @@
 import numpy as np
 
+
 class Settings:
     def __init__(self, freq: float = 60, sbase: float = 100):
         self.freq = freq
         self.sbase = sbase
 
-    def compute_power_injection(self, bus, ybus, voltages):
-        i = bus.bus_index
-
+    def compute_power_injection(self, bus, ybus, voltages, angles=None):
+        i  = bus.bus_index
         Vi = voltages[i]
-        delta_i = bus.delta
+
+        # Use passed angles array if provided, otherwise fall back to bus.delta (degrees -> radians)
+        if angles is not None:
+            delta_i = angles[i]
+        else:
+            delta_i = np.deg2rad(bus.delta)
 
         Pi = 0.0
         Qi = 0.0
@@ -17,11 +22,14 @@ class Settings:
         for j in range(len(voltages)):
             Vj = voltages[j]
 
-            delta_j = 0.0
-            for other_bus in self.circuit.buses.values():
-                if other_bus.bus_index == j:
-                    delta_j = other_bus.delta
-                    break
+            if angles is not None:
+                delta_j = angles[j]
+            else:
+                delta_j = 0.0
+                for other_bus in self.circuit.buses.values():
+                    if other_bus.bus_index == j:
+                        delta_j = np.deg2rad(other_bus.delta)
+                        break
 
             Gij = ybus.iloc[i, j].real
             Bij = ybus.iloc[i, j].imag

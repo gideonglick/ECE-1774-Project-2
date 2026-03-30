@@ -3,6 +3,7 @@ from circuit import Circuit
 from bus import Bus
 from generator import Generator
 from load import Load
+from jacobian import Jacobian, JacobianFormatter
 import numpy as np
 
 if __name__ == "__main__":
@@ -25,9 +26,28 @@ if __name__ == "__main__":
 
     circuit1.calc_ybus()
 
-    voltages = np.array([1.05, 0.98, 1.02])
+    print("Ybus:")
+    print(circuit1.ybus)
+
+    # --- Mismatch Vector ---
+    voltages = np.array([bus.vpu   for bus in circuit1.buses.values()])
+    angles   = np.array([bus.delta for bus in circuit1.buses.values()])
 
     mismatch_vector = circuit1.settings.compute_power_mismatch(circuit1.buses, circuit1.ybus, voltages)
-
-    print("Mismatch vector:")
+    print("\nMismatch vector:")
     print(mismatch_vector)
+
+    # --- Jacobian ---
+    jac = Jacobian(circuit1)
+    J = jac.calc_jacobian(circuit1.buses, circuit1.ybus, angles, voltages)
+
+    print("\nJacobian matrix:")
+    formatter = JacobianFormatter(jac)
+    formatter.print_dataframe()
+
+    # --- Dimension Check ---
+    print("\nMismatch vector length:", len(mismatch_vector))
+    print("Jacobian shape:", J.shape)
+    assert J.shape[0] == len(mismatch_vector), "Dimension mismatch!"
+    assert J.shape[1] == len(mismatch_vector), "Dimension mismatch!"
+    print("Dimensions match ✓")

@@ -5,6 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a9d11083-84db-46b3-b5c3-c14606024049" name="Changes" comment="3/3/26 8:51">
+      <change afterPath="$PROJECT_DIR$/jacobian.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ECE-1774-Project-2.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ECE-1774-Project-2.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
@@ -24,7 +27,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="Milestone5" />
+        <entry key="$PROJECT_DIR$" value="Milestone6" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -50,6 +53,7 @@
 }</component>
   <component name="ProjectId" id="39XWrxKuq61DsTcpONt3WiwyOmP" />
   <component name="ProjectLevelVcsManager">
+    <OptionsSetting value="false" id="Update" />
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
@@ -63,6 +67,7 @@
     "Python.bus.executor": "Run",
     "Python.circuit.executor": "Run",
     "Python.generator.executor": "Run",
+    "Python.jacobian.executor": "Run",
     "Python.load.executor": "Run",
     "Python.main.executor": "Run",
     "Python.settings.executor": "Run",
@@ -73,7 +78,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "Milestone6",
+    "git-widget-placeholder": "Milestone7",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "C:/Users/gideo/OneDrive/Documents/GitHub/ECE-1774-Project-2",
     "node.js.detected.package.eslint": "true",
@@ -85,6 +90,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\gideo\OneDrive\Documents\GitHub\ECE-1774-Project-2" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>

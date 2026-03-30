@@ -1,0 +1,181 @@
+Index: main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from circuit import Circuit\r\nfrom transformer import Transformer\r\nfrom transmissionLine import TransmissionLine\r\nimport pandas as pd\r\npd.set_option('display.max_columns', None)\r\npd.set_option('display.width', None)\r\npd.set_option('display.float_format', lambda x: f'{x:.4f}')\r\n\r\ndef main():\r\n    case69 = Circuit(\"Case 6.9\")\r\n\r\n    # Add 5 buses\r\n    case69.add_bus(\"Bus 1\", 15.0)\r\n    case69.add_bus(\"Bus 2\", 345.0)\r\n    case69.add_bus(\"Bus 3\", 15.0)\r\n    case69.add_bus(\"Bus 4\", 345.0)\r\n    case69.add_bus(\"Bus 5\", 345.0)\r\n\r\n    case69.add_transformer(\"T1\", \"Bus 1\", \"Bus 5\", 0.00150, 0.02)\r\n    case69.add_transformer(\"T2\", \"Bus 3\", \"Bus 4\", 0.00075, 0.01)\r\n\r\n    case69.add_transmission_line(\"Line 1\", \"Bus 2\", \"Bus 4\", 0.0090, 0.100, 0, 1.72)\r\n    case69.add_transmission_line(\"Line 2\", \"Bus 2\", \"Bus 5\", 0.0045, 0.050, 0, 0.88)\r\n    case69.add_transmission_line(\"Line 3\", \"Bus 4\", \"Bus 5\", 0.00225, 0.025, 0, 0.44)\r\n\r\n    case69.calc_ybus()\r\n    print(case69.ybus)\r\nif __name__ == \"__main__\":\r\n    main()
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/main.py b/main.py
+--- a/main.py	(revision a4a7c397b00f9eb7c1e32989eac5392077139a37)
++++ b/main.py	(date 1774389285579)
+@@ -2,28 +2,41 @@
+ from transformer import Transformer
+ from transmissionLine import TransmissionLine
+ import pandas as pd
++
+ pd.set_option('display.max_columns', None)
+ pd.set_option('display.width', None)
+ pd.set_option('display.float_format', lambda x: f'{x:.4f}')
+ 
+ def main():
+-    case69 = Circuit("Case 6.9")
++    # 2 Bus System
++    case = Circuit("2 Bus System")
++
++    # Add buses
++    case.add_bus("Bus 1", 20.0)
++    case.add_bus("Bus 2", 230.0)
+ 
+-    # Add 5 buses
+-    case69.add_bus("Bus 1", 15.0)
+-    case69.add_bus("Bus 2", 345.0)
+-    case69.add_bus("Bus 3", 15.0)
+-    case69.add_bus("Bus 4", 345.0)
+-    case69.add_bus("Bus 5", 345.0)
++    # Add transformer
++    case.add_transformer("T1", "Bus 1", "Bus 2", 0.01, 0.10)
+ 
+-    case69.add_transformer("T1", "Bus 1", "Bus 5", 0.00150, 0.02)
+-    case69.add_transformer("T2", "Bus 3", "Bus 4", 0.00075, 0.01)
++    # Add transmission line
++    case.add_transmission_line("Line 1", "Bus 1", "Bus 2", 0.02, 0.25, 0.0, 0.04)
+ 
+-    case69.add_transmission_line("Line 1", "Bus 2", "Bus 4", 0.0090, 0.100, 0, 1.72)
+-    case69.add_transmission_line("Line 2", "Bus 2", "Bus 5", 0.0045, 0.050, 0, 0.88)
+-    case69.add_transmission_line("Line 3", "Bus 4", "Bus 5", 0.00225, 0.025, 0, 0.44)
++    # Print individual elements
++    transformer1 = Transformer("T1", "Bus 1", "Bus 2", 0.01, 0.10)
++    print("Transformer Yseries:", transformer1.Yseries)
++    print("Transformer Yprim:")
++    print(transformer1.calc_yprim())
+ 
+-    case69.calc_ybus()
+-    print(case69.ybus)
++    line1 = TransmissionLine("Line 1", "Bus 1", "Bus 2", 0.02, 0.25, 0.0, 0.04)
++    print("Line Yseries:", line1.Yseries)
++    print("Line Yshunt:", line1.Yshunt)
++    print("Line Yprim:")
++    print(line1.calc_yprim())
++
++    # Calculate and print Ybus
++    case.calc_ybus()
++    print("\nYbus Matrix:")
++    print(case.ybus)
++
+ if __name__ == "__main__":
+     main()
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"Black\">\r\n    <option name=\"sdkName\" value=\"Python 3.10 (ECE-1774-Project-2)\" />\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" project-jdk-name=\"Python 3.10 (ECE-1774-Project-2)\" project-jdk-type=\"Python SDK\" />\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision a4a7c397b00f9eb7c1e32989eac5392077139a37)
++++ b/.idea/misc.xml	(date 1774389310917)
+@@ -3,5 +3,5 @@
+   <component name="Black">
+     <option name="sdkName" value="Python 3.10 (ECE-1774-Project-2)" />
+   </component>
+-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (ECE-1774-Project-2)" project-jdk-type="Python SDK" />
++  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (ECE-1774-Project-2)" project-jdk-type="Python SDK" />
+ </project>
+\ No newline at end of file
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"a9d11083-84db-46b3-b5c3-c14606024049\" name=\"Changes\" comment=\"3/3/26\">\r\n      <change beforePath=\"$PROJECT_DIR$/main.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/main.py\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Python Script\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\r\n      <map>\r\n        <entry key=\"$PROJECT_DIR$\" value=\"Milestone4\" />\r\n      </map>\r\n    </option>\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\">{\r\n  &quot;lastFilter&quot;: {\r\n    &quot;state&quot;: &quot;OPEN&quot;,\r\n    &quot;assignee&quot;: &quot;gideonglick&quot;\r\n  }\r\n}</component>\r\n  <component name=\"GithubPullRequestsUISettings\"><![CDATA[{\r\n  \"selectedUrlAndAccountId\": {\r\n    \"url\": \"https://github.com/gideonglick/ECE-1774-Project-2.git\",\r\n    \"accountId\": \"c614476a-5db2-4555-8685-3231958e73bc\"\r\n  }\r\n}]]></component>\r\n  <component name=\"McpProjectServerCommands\">\r\n    <commands />\r\n    <urls />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 5\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"39XWrxKuq61DsTcpONt3WiwyOmP\" />\r\n  <component name=\"ProjectLevelVcsManager\">\r\n    <ConfirmationsSetting value=\"2\" id=\"Add\" />\r\n  </component>\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\"><![CDATA[{\r\n  \"keyToString\": {\r\n    \"ModuleVcsDetector.initialDetectionPerformed\": \"true\",\r\n    \"Python.Settings.executor\": \"Run\",\r\n    \"Python.circuit.executor\": \"Run\",\r\n    \"Python.load.executor\": \"Run\",\r\n    \"Python.main.executor\": \"Run\",\r\n    \"RunOnceActivity.MCP Project settings loaded\": \"true\",\r\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\r\n    \"RunOnceActivity.git.unshallow\": \"true\",\r\n    \"RunOnceActivity.typescript.service.memoryLimit.init\": \"true\",\r\n    \"ai.playground.ignore.import.keys.banner.in.settings\": \"true\",\r\n    \"com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1\": \"true\",\r\n    \"git-widget-placeholder\": \"Milestone5\",\r\n    \"junie.onboarding.icon.badge.shown\": \"true\",\r\n    \"last_opened_file_path\": \"C:/Users/gideo/OneDrive/Documents/GitHub/ECE-1774-Project-2\",\r\n    \"node.js.detected.package.eslint\": \"true\",\r\n    \"node.js.detected.package.tslint\": \"true\",\r\n    \"node.js.selected.package.eslint\": \"(autodetect)\",\r\n    \"node.js.selected.package.tslint\": \"(autodetect)\",\r\n    \"nodejs_package_manager_path\": \"npm\",\r\n    \"to.speed.mode.migration.done\": \"true\",\r\n    \"vue.rearranger.settings.migration\": \"true\"\r\n  }\r\n}]]></component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-python-sdk-ca5e2b39c7df-6e1f45a539f7-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.29346.308\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"a9d11083-84db-46b3-b5c3-c14606024049\" name=\"Changes\" comment=\"\" />\r\n      <created>1770843097332</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1770843097332</updated>\r\n      <workItem from=\"1770843098360\" duration=\"1621000\" />\r\n      <workItem from=\"1770844747764\" duration=\"1364000\" />\r\n      <workItem from=\"1770902071368\" duration=\"2339000\" />\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"3/3/26\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1772543751975</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1772543751975</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"2\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"3/3/26\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"3/3/26\" />\r\n  </component>\r\n  <component name=\"com.intellij.coverage.CoverageDataManagerImpl\">\r\n    <SUITE FILE_PATH=\"coverage/ECE_1774_Project_2$main.coverage\" NAME=\"main Coverage Results\" MODIFIED=\"1770903680931\" SOURCE_PROVIDER=\"com.intellij.coverage.DefaultCoverageFileProvider\" RUNNER=\"coverage.py\" COVERAGE_BY_TEST_ENABLED=\"false\" COVERAGE_TRACING_ENABLED=\"false\" WORKING_DIRECTORY=\"$PROJECT_DIR$\" />\r\n    <SUITE FILE_PATH=\"coverage/ECE_1774_Project_2$load.coverage\" NAME=\"load Coverage Results\" MODIFIED=\"1770844223255\" SOURCE_PROVIDER=\"com.intellij.coverage.DefaultCoverageFileProvider\" RUNNER=\"coverage.py\" COVERAGE_BY_TEST_ENABLED=\"false\" COVERAGE_TRACING_ENABLED=\"false\" WORKING_DIRECTORY=\"$PROJECT_DIR$\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision a4a7c397b00f9eb7c1e32989eac5392077139a37)
++++ b/.idea/workspace.xml	(date 1774455301249)
+@@ -4,7 +4,14 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="a9d11083-84db-46b3-b5c3-c14606024049" name="Changes" comment="3/3/26">
++    <list default="true" id="a9d11083-84db-46b3-b5c3-c14606024049" name="Changes" comment="">
++      <change beforePath="$PROJECT_DIR$/.idea/ECE-1774-Project-2.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ECE-1774-Project-2.iml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_2_24_2026_6_20_PM_[Changes]/shelved.patch" beforeDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_2_24_2026_6_20_PM__Changes_.xml" beforeDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Merge_at_3_2_2026_8_58_PM_[Changes]/shelved.patch" beforeDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Merge_at_3_2_2026_8_58_PM__Changes_.xml" beforeDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+@@ -33,12 +40,12 @@
+     &quot;assignee&quot;: &quot;gideonglick&quot;
+   }
+ }</component>
+-  <component name="GithubPullRequestsUISettings"><![CDATA[{
+-  "selectedUrlAndAccountId": {
+-    "url": "https://github.com/gideonglick/ECE-1774-Project-2.git",
+-    "accountId": "c614476a-5db2-4555-8685-3231958e73bc"
++  <component name="GithubPullRequestsUISettings">{
++  &quot;selectedUrlAndAccountId&quot;: {
++    &quot;url&quot;: &quot;https://github.com/gideonglick/ECE-1774-Project-2.git&quot;,
++    &quot;accountId&quot;: &quot;2c4acf95-070c-46aa-9040-9103496c3f59&quot;
+   }
+-}]]></component>
++}</component>
+   <component name="McpProjectServerCommands">
+     <commands />
+     <urls />
+@@ -57,7 +64,6 @@
+   <component name="PropertiesComponent"><![CDATA[{
+   "keyToString": {
+     "ModuleVcsDetector.initialDetectionPerformed": "true",
+-    "Python.Settings.executor": "Run",
+     "Python.circuit.executor": "Run",
+     "Python.load.executor": "Run",
+     "Python.main.executor": "Run",
+@@ -97,23 +103,10 @@
+       <workItem from="1770844747764" duration="1364000" />
+       <workItem from="1770902071368" duration="2339000" />
+     </task>
+-    <task id="LOCAL-00001" summary="3/3/26">
+-      <option name="closed" value="true" />
+-      <created>1772543751975</created>
+-      <option name="number" value="00001" />
+-      <option name="presentableId" value="LOCAL-00001" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1772543751975</updated>
+-    </task>
+-    <option name="localTasksCounter" value="2" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+     <option name="version" value="3" />
+-  </component>
+-  <component name="VcsManagerConfiguration">
+-    <MESSAGE value="3/3/26" />
+-    <option name="LAST_COMMIT_MESSAGE" value="3/3/26" />
+   </component>
+   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+     <SUITE FILE_PATH="coverage/ECE_1774_Project_2$main.coverage" NAME="main Coverage Results" MODIFIED="1770903680931" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+Index: .idea/ECE-1774-Project-2.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<module type=\"PYTHON_MODULE\" version=\"4\">\r\n  <component name=\"NewModuleRootManager\">\r\n    <content url=\"file://$MODULE_DIR$\">\r\n      <excludeFolder url=\"file://$MODULE_DIR$/.venv\" />\r\n    </content>\r\n    <orderEntry type=\"jdk\" jdkName=\"Python 3.10 (ECE-1774-Project-2)\" jdkType=\"Python SDK\" />\r\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\r\n  </component>\r\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/ECE-1774-Project-2.iml b/.idea/ECE-1774-Project-2.iml
+--- a/.idea/ECE-1774-Project-2.iml	(revision a4a7c397b00f9eb7c1e32989eac5392077139a37)
++++ b/.idea/ECE-1774-Project-2.iml	(date 1774389310906)
+@@ -4,7 +4,7 @@
+     <content url="file://$MODULE_DIR$">
+       <excludeFolder url="file://$MODULE_DIR$/.venv" />
+     </content>
+-    <orderEntry type="jdk" jdkName="Python 3.10 (ECE-1774-Project-2)" jdkType="Python SDK" />
++    <orderEntry type="jdk" jdkName="Python 3.12 (ECE-1774-Project-2)" jdkType="Python SDK" />
+     <orderEntry type="sourceFolder" forTests="false" />
+   </component>
+ </module>
+\ No newline at end of file

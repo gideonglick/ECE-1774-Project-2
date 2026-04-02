@@ -29,6 +29,35 @@ class Settings:
         return Pi, Qi
 
     def compute_power_mismatch(self, buses, ybus, voltages, angles):
+        p_mismatches = []
+        q_mismatches = []
+
+        for bus in buses.values():
+            if bus.bus_type == "Slack":
+                continue
+
+            P_calc, Q_calc = self.compute_power_injection(bus, ybus, voltages, angles)
+
+            P_spec = 0.0
+            Q_spec = 0.0
+
+            for generator in self.circuit.generators.values():
+                if generator.bus1_name == bus.name:
+                    P_spec += generator.p
+
+            for load in self.circuit.loads.values():
+                if load.bus1_name == bus.name:
+                    P_spec -= load.calc_p()
+                    Q_spec -= load.calc_q()
+
+            p_mismatches.append(P_spec - P_calc)
+
+            if bus.bus_type == "PQ":
+                q_mismatches.append(Q_spec - Q_calc)
+
+        return np.array(p_mismatches + q_mismatches, dtype=float)
+
+    def compute_mismatch_table(self, buses, ybus, voltages, angles):
         rows = []
 
         for bus in buses.values():

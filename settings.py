@@ -10,7 +10,6 @@ class Settings:
         i  = bus.bus_index
         Vi = voltages[i]
 
-        # Use passed angles array if provided, otherwise fall back to bus.delta (degrees -> radians)
         if angles is not None:
             delta_i = angles[i]
         else:

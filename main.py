@@ -27,17 +27,16 @@ if __name__ == "__main__":
     circuit1.add_transformer("T1", "Bus 1", "Bus 5", 0.00150, 0.02)
     circuit1.add_transformer("T2", "Bus 3", "Bus 4", 0.00075, 0.01)
 
-    # Transmission lines (
+    # Transmission lines
     circuit1.add_transmission_line("L1", "Bus 2", "Bus 4", 0.0090,  0.100, 0.0, 1.72)
     circuit1.add_transmission_line("L2", "Bus 2", "Bus 5", 0.0045,  0.050, 0.0, 0.88)
     circuit1.add_transmission_line("L3", "Bus 4", "Bus 5", 0.00225, 0.025, 0.0, 0.44)
 
-    # Bus 2: load only — 800 MW, 280 Mvar
+    # Loads and generators
     circuit1.loads["Load2"] = Load("Load2", "Bus 2", 800.0, 280.0, circuit1.settings)
 
-    # Bus 3: PG = 520 MW, PL = 80 MW, QL = 40 Mvar → net P = 4.4 pu
     circuit1.generators["Gen3"] = Generator("Gen3", "Bus 3", 1.05, 520.0, circuit1.settings)
-    circuit1.loads["Load3"]     = Load("Load3",     "Bus 3",  80.0,  40.0, circuit1.settings)
+    circuit1.loads["Load3"] = Load("Load3", "Bus 3", 80.0, 40.0, circuit1.settings)
 
     # Ybus
     circuit1.calc_ybus()
@@ -45,17 +44,18 @@ if __name__ == "__main__":
     print("Ybus:")
     print(circuit1.ybus.round(4))
 
-    #  Mismatch Vector (flat start)
-    voltages = np.array([bus.vpu   for bus in circuit1.buses.values()])
-    angles   = np.array([bus.delta for bus in circuit1.buses.values()])
+    # Flat start
+    voltages = np.array([bus.vpu for bus in circuit1.buses.values()], dtype=float)
+    angles = np.array([bus.delta for bus in circuit1.buses.values()], dtype=float)
 
-    mismatch_vector = circuit1.settings.compute_power_mismatch(
-        circuit1.buses, circuit1.ybus, voltages
+    mismatch_table = circuit1.settings.compute_power_mismatch(
+        circuit1.buses, circuit1.ybus, voltages, angles
     )
-    print("\nMismatch vector:")
-    print(mismatch_vector)
 
-    #Jacobian (flat start)
+    print("\nMismatch table (flat start):")
+    print(mismatch_table.to_string(index=False))
+
+    # Jacobian at flat start
     jac = Jacobian(circuit1)
     J = jac.calc_jacobian(circuit1.buses, circuit1.ybus, angles, voltages)
 
@@ -63,20 +63,33 @@ if __name__ == "__main__":
     formatter = JacobianFormat(jac)
     formatter.print_dataframe()
 
-    #Dimension Check
-    print("\nMismatch vector length:", len(mismatch_vector))
+    # Dimension check
+    expected_mismatch_length = (
+        sum(1 for bus in circuit1.buses.values() if bus.bus_type != "Slack")
+        + sum(1 for bus in circuit1.buses.values() if bus.bus_type == "PQ")
+    )
+
+    print("\nExpected mismatch length:", expected_mismatch_length)
     print("Jacobian shape:", J.shape)
-    assert J.shape[0] == len(mismatch_vector), "Dimension mismatch!"
-    assert J.shape[1] == len(mismatch_vector), "Dimension mismatch!"
+
+    assert J.shape[0] == expected_mismatch_length, "Dimension mismatch!"
+    assert J.shape[1] == expected_mismatch_length, "Dimension mismatch!"
     print("Dimensions match ✓")
 
-    # Jacobian at PowerWorld Converged Solution
-    converged_voltages = np.array([1.00000, 0.83377, 1.05000, 1.01930, 0.97429])
-    converged_angles   = np.array([0.00, -22.41, -0.60, -2.83, -4.55])  # degrees
+    # PowerWorld converged solution
+    converged_voltages = np.array([1.00000, 0.83377, 1.05000, 1.01930, 0.97429], dtype=float)
+    converged_angles = np.array([0.00, -22.41, -0.60, -2.83, -4.55], dtype=float)  # degrees
+
+    converged_mismatch_table = circuit1.settings.compute_power_mismatch(
+        circuit1.buses, circuit1.ybus, converged_voltages, converged_angles
+    )
+
+    print("\nMismatch table at converged solution:")
+    print(converged_mismatch_table.to_string(index=False))
 
     J_converged = jac.calc_jacobian(
         circuit1.buses, circuit1.ybus, converged_angles, converged_voltages
     )
 
-    print("\nJacobian at converged solution (compare against PowerWorld):")
+    print("\nJacobian at converged solution:")
     formatter.print_dataframe()

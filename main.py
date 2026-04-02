@@ -8,26 +8,38 @@ import numpy as np
 if __name__ == "__main__":
     Bus.bus_counter = 0
 
-    circuit1 = Circuit("Mismatch Test")
-    circuit1.settings = Settings()
+    circuit1 = Circuit("PowerWorld 5-Bus")
+    circuit1.settings = Settings(freq=60, sbase=100)
     circuit1.settings.circuit = circuit1
 
-    circuit1.buses["Bus 1"] = Bus("Bus 1", 230.0, "Slack", 1.05, 0.0)
-    circuit1.buses["Bus 2"] = Bus("Bus 2", 230.0, "PQ", 0.98, -0.08)
-    circuit1.buses["Bus 3"] = Bus("Bus 3", 230.0, "PV", 1.02, 0.12)
+    circuit1.buses["One"] = Bus("One", 15.0, "Slack", 1.00000, 0.00)
+    circuit1.buses["Two"] = Bus("Two", 345.0, "PQ", 0.83377, -22.41)
+    circuit1.buses["Three"] = Bus("Three", 15.0, "PV", 1.05000, -0.60)
+    circuit1.buses["Four"] = Bus("Four", 345.0, "PQ", 1.01930, -2.83)
+    circuit1.buses["Five"] = Bus("Five", 345.0, "PQ", 0.97429, -4.55)
 
-    circuit1.add_transmission_line("Line 1", "Bus 1", "Bus 2", 0.02, 0.06, 0.0, 0.03)
-    circuit1.add_transmission_line("Line 2", "Bus 2", "Bus 3", 0.08, 0.24, 0.0, 0.025)
-    circuit1.add_transformer("T1", "Bus 1", "Bus 3", 0.01, 0.04)
+    circuit1.generators["G1"] = Generator("G1", "One", 1.00000, 394.84, circuit1.settings)
+    circuit1.generators["G2"] = Generator("G2", "Three", 1.05000, 520.00, circuit1.settings)
 
-    circuit1.generators["G1"] = Generator("G1", "Bus 3", 1.02, 120.0, circuit1.settings)
-    circuit1.loads["L1"] = Load("L1", "Bus 2", 90.0, 30.0, circuit1.settings)
+    circuit1.loads["L1"] = Load("L1", "Two", 800.00, 280.00, circuit1.settings)
+    circuit1.loads["L2"] = Load("L2", "Three", 80.00, 40.00, circuit1.settings)
+
+    circuit1.add_transformer("T1", "One", "Five", 0.00150, 0.02000)
+    circuit1.add_transmission_line("Line 1", "Four", "Two", 0.00900, 0.10000, 0.0, 1.72000)
+    circuit1.add_transmission_line("Line 2", "Five", "Two", 0.00450, 0.05000, 0.0, 0.88000)
+    circuit1.add_transformer("T2", "Three", "Four", 0.00075, 0.01000)
+    circuit1.add_transmission_line("Line 3", "Five", "Four", 0.00225, 0.02500, 0.0, 0.44000)
 
     circuit1.calc_ybus()
 
-    voltages = np.array([1.05, 0.98, 1.02])
+    voltages = np.array([1.0, 1.0, 1.05, 1.0, 1.0], dtype=float)
+    angles = np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=float)
 
-    mismatch_vector = circuit1.settings.compute_power_mismatch(circuit1.buses, circuit1.ybus, voltages)
+    mismatch_table = circuit1.settings.compute_power_mismatch(circuit1.buses,circuit1.ybus,voltages,angles)
 
-    print("Mismatch vector:")
-    print(mismatch_vector)
+    print("Ybus:")
+    print(circuit1.ybus)
+    print()
+
+    print("Mismatch table:")
+    print(mismatch_table.to_string(index=False))

@@ -1,3 +1,4 @@
+import pandas as pd
 import numpy as np
 
 class Settings:
@@ -5,23 +6,18 @@ class Settings:
         self.freq = freq
         self.sbase = sbase
 
-    def compute_power_injection(self, bus, ybus, voltages):
+    def compute_power_injection(self, bus, ybus, voltages, angles):
         i = bus.bus_index
 
         Vi = voltages[i]
-        delta_i = bus.delta
+        delta_i = np.deg2rad(angles[i])
 
         Pi = 0.0
         Qi = 0.0
 
         for j in range(len(voltages)):
             Vj = voltages[j]
-
-            delta_j = 0.0
-            for other_bus in self.circuit.buses.values():
-                if other_bus.bus_index == j:
-                    delta_j = other_bus.delta
-                    break
+            delta_j = np.deg2rad(angles[j])
 
             Gij = ybus.iloc[i, j].real
             Bij = ybus.iloc[i, j].imag
@@ -32,14 +28,11 @@ class Settings:
 
         return Pi, Qi
 
-    def compute_power_mismatch(self, buses, ybus, voltages):
-        mismatch_vector = []
+    def compute_power_mismatch(self, buses, ybus, voltages, angles):
+        rows = []
 
         for bus in buses.values():
-            if bus.bus_type == "Slack":
-                continue
-
-            P_calc, Q_calc = self.compute_power_injection(bus, ybus, voltages)
+            P_calc, Q_calc = self.compute_power_injection(bus, ybus, voltages, angles)
 
             P_spec = 0.0
             Q_spec = 0.0
@@ -53,12 +46,28 @@ class Settings:
                     P_spec -= load.calc_p()
                     Q_spec -= load.calc_q()
 
-            real_power_mismatch = P_spec - P_calc
+            if bus.bus_type == "Slack":
+                P_mismatch = 0.0
+                Q_mismatch = 0.0
 
-            if bus.bus_type == "PQ":
-                reactive_power_mismatch = Q_spec - Q_calc
-                mismatch_vector += [real_power_mismatch, reactive_power_mismatch]
-            else:
-                mismatch_vector += [real_power_mismatch]
+            elif bus.bus_type == "PV":
+                P_mismatch = (P_spec - P_calc) * self.sbase
+                Q_mismatch = 0.0
 
-        return np.array(mismatch_vector)
+            else:  # PQ
+                P_mismatch = (P_spec - P_calc) * self.sbase
+                Q_mismatch = (Q_spec - Q_calc) * self.sbase
+
+            S_mismatch = np.sqrt(P_mismatch**2 + Q_mismatch**2)
+
+            rows.append({
+                "Number": bus.bus_index + 1,
+                "Name": bus.name,
+                "Area Name": 1,
+                "Type": bus.bus_type,
+                "Mismatch MW": round(P_mismatch, 2),
+                "Mismatch Mvar": round(Q_mismatch, 2),
+                "Mismatch MVA": round(S_mismatch, 2)
+            })
+
+        return pd.DataFrame(rows)

@@ -17,9 +17,7 @@ class PowerFlow:
         self.fault_current = None
         self.bus_voltages = None
 
-    # ------------------------------------------------------------------
     # Newton-Raphson Power Flow
-    # ------------------------------------------------------------------
     def solve(self, tol=0.001, max_iter=50):
         self.circuit.calc_ybus()
         buses = self.circuit.buses
@@ -67,9 +65,7 @@ class PowerFlow:
 
         return voltages, angles, self.converged, self.iterations
 
-    # ------------------------------------------------------------------
     # Fault Study
-    # ------------------------------------------------------------------
     def calc_ybus_faulted(self):
         # Always rebuild clean Ybus first, then stamp generator shunts
         self.circuit.calc_ybus()

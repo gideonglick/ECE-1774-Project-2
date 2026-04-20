@@ -1,3 +1,4 @@
+import cmath
 import numpy as np
 import pandas as pd
 from circuit import Circuit
@@ -17,7 +18,13 @@ class PowerFlow:
         self.fault_current = None
         self.bus_voltages = None
 
-    # Newton-Raphson Power Flow
+    # ---------- helpers ----------
+    @staticmethod
+    def _bus_phasor(bus):
+        """Convert a bus's (|V|, delta[deg]) into a complex phasor."""
+        return bus.vpu * cmath.exp(1j * np.deg2rad(bus.delta))
+
+    # ---------- Newton-Raphson Power Flow ----------
     def solve(self, tol=0.001, max_iter=50):
         self.circuit.calc_ybus()
         buses = self.circuit.buses
@@ -33,9 +40,9 @@ class PowerFlow:
             mismatch = self.settings.compute_power_mismatch(
                 buses, ybus, voltages, angles
             )
-            self.final_mismatch = mismatch
 
             if np.max(np.abs(mismatch)) < tol:
+                self.final_mismatch = mismatch
                 self.converged = True
                 self.iterations = iteration
                 break
@@ -55,19 +62,21 @@ class PowerFlow:
                     k += 1
 
             self.iterations = iteration
+            self.final_mismatch = mismatch
 
         if not self.converged:
             raise ValueError("Newton-Raphson did not converge")
 
+        # Write converged solution back onto the bus objects
         for bus in buses.values():
             bus.vpu = voltages[bus.bus_index]
             bus.delta = angles[bus.bus_index]
 
         return voltages, angles, self.converged, self.iterations
 
-    # Fault Study
+    # ---------- Fault Study ----------
     def calc_ybus_faulted(self):
-        # Always rebuild clean Ybus first, then stamp generator shunts
+        """Rebuild clean Ybus, then stamp generator subtransient shunts."""
         self.circuit.calc_ybus()
         bus_names = list(self.circuit.buses.keys())
         bus_index = {name: i for i, name in enumerate(bus_names)}
@@ -85,42 +94,41 @@ class PowerFlow:
         self.zbus = pd.DataFrame(
             np.linalg.inv(ybus_faulted.values),
             index=ybus_faulted.index,
-            columns=ybus_faulted.columns
+            columns=ybus_faulted.columns,
         )
         return self.zbus
 
-    def solve_fault(self, fault_bus_name: str):
+    def solve_fault(self, fault_bus_name: str,
+                    fault_impedance: complex = 0.0,
+                    prefault_voltage: complex = None):
+
         if fault_bus_name not in self.circuit.buses:
             raise ValueError(f"Bus '{fault_bus_name}' not found in circuit.")
 
         ybus_faulted = self.calc_ybus_faulted()
         self.calc_zbus(ybus_faulted)
 
-        # Use actual prefault voltage from power flow solution
-        vf = complex(self.circuit.buses[fault_bus_name].vpu)
-        Z_nn = self.zbus.loc[fault_bus_name, fault_bus_name]
-        self.fault_current = vf / Z_nn
+        # Determine prefault voltage at the faulted bus
+        if prefault_voltage is not None:
+            vf = complex(prefault_voltage)
+        else:
+            vf = self._bus_phasor(self.circuit.buses[fault_bus_name])
 
+        Z_nn = self.zbus.loc[fault_bus_name, fault_bus_name]
+
+        # Subtransient fault current
+        self.fault_current = vf / (Z_nn + fault_impedance)
+
+        # Post-fault bus voltages via Thevenin superposition
         self.bus_voltages = {}
         for bus_name in self.circuit.buses.keys():
             Z_kn = self.zbus.loc[bus_name, fault_bus_name]
-            V_k_prefault = complex(self.circuit.buses[bus_name].vpu)
-            self.bus_voltages[bus_name] = V_k_prefault - (Z_kn / Z_nn) * vf
+            if prefault_voltage is not None:
+                V_k_prefault = complex(prefault_voltage)
+            else:
+                V_k_prefault = self._bus_phasor(self.circuit.buses[bus_name])
+            self.bus_voltages[bus_name] = (
+                V_k_prefault - (Z_kn / (Z_nn + fault_impedance)) * vf
+            )
 
-        print(f"\n--- Fault Study Results ---")
-        print(f"Faulted Bus   : {fault_bus_name}")
-        print(f"Prefault V    : {abs(vf):.4f} pu")
-        print(f"Fault Current : {abs(self.fault_current):.4f} pu  "
-              f"(angle: {np.angle(self.fault_current, deg=True):.2f} deg)")
-        print(f"\nPost-Fault Bus Voltages:")
-
-        rows = []
-        for bus_name, V in self.bus_voltages.items():
-            rows.append({
-                "Bus": bus_name,
-                "Voltage (pu)": round(abs(V), 4),
-                "Angle (deg)": round(np.angle(V, deg=True), 2)
-            })
-            print(f"  {bus_name}: {abs(V):.4f} pu  ({np.angle(V, deg=True):.2f} deg)")
-
-        return pd.DataFrame(rows)
+        return self.bus_voltages

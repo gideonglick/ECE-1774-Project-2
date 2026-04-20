@@ -1,5 +1,5 @@
 import numpy as np
-from jacobian import Jacobian, JacobianFormat
+import pandas as pd
 from powerflow import PowerFlow
 
 
@@ -8,125 +8,164 @@ class Solver:
         self.circuit = circuit
         self.circuit.calc_ybus()
         self.pf = PowerFlow(circuit)
-
         self.converged = False
         self.iterations = 0
         self.mismatch_norm = None
-        self.solved_voltages = None
-        self.solved_angles = None
-        self.fault_bus = "Bus 3"
-        self.fault_results = None
-        self.faulted_voltage = None
+        self.fault_bus = "Bus 1"
         self.fault_current_mag = None
-        self.mismatch_vector = None
-        self.mismatch_table = None
-        self.solved_mismatch_table = None
-        self.jacobian_matrix = None
-        self.jacobian_formatter = None
 
-    def run(self, force_print=False, run_fault=False):
-        self.run_power_flow()
+    # ---------- Public entry point ----------
+    def run(self, run_fault: bool = True,
+            fault_all_buses: bool = False,
+            prefault_voltage: complex = None,
+            skip_power_flow: bool = False):
+        """
+        run_fault        : run a fault study after the power flow
+        fault_all_buses  : fault every bus one at a time, print N x N grid
+        prefault_voltage : flat complex phasor (e.g. 1.05+0j) applied at all
+                           buses for the fault study. If None, use power-flow
+                           solution.
+        skip_power_flow  : skip Newton-Raphson entirely. Use for lossless
+                           + unloaded systems (Example 8.5) where NR would
+                           fail and there is nothing to solve.
+        """
+        self._print_case_banner()
 
-        blackout = False
+        # --- Power Flow (optional) ---
+        if skip_power_flow:
+            print()
+            print("  (Power flow skipped -- unloaded network, "
+                  "flat prefault voltages)")
+            print()
+        else:
+            try:
+                self.pf.solve()
+                self.converged = self.pf.converged
+                self.iterations = self.pf.iterations
+                self.mismatch_norm = float(
+                    np.max(np.abs(self.pf.final_mismatch))
+                )
+            except ValueError:
+                self.converged = False
+            self._print_power_flow_results()
 
+        # --- Fault Study ---
         if run_fault:
-            self.run_fault_study()
+            if fault_all_buses:
+                self._run_fault_all_buses(prefault_voltage=prefault_voltage)
+            else:
+                self.pf.solve_fault(
+                    self.fault_bus,
+                    prefault_voltage=prefault_voltage,
+                )
+                self.fault_current_mag = abs(self.pf.fault_current)
+                self._print_single_fault_results()
 
-        if blackout and not force_print:
-            print("BLACKOUT")
+    # ---------- Sweep every bus, build N x N grid ----------
+    def _run_fault_all_buses(self, prefault_voltage=None):
+        bus_names = list(self.circuit.buses.keys())
+
+        mag_grid = pd.DataFrame(index=bus_names, columns=bus_names, dtype=float)
+        ang_grid = pd.DataFrame(index=bus_names, columns=bus_names, dtype=float)
+        fault_currents = {}
+
+        for faulted in bus_names:
+            self.pf.solve_fault(faulted, prefault_voltage=prefault_voltage)
+            fault_currents[faulted] = self.pf.fault_current
+            for bus_name, V in self.pf.bus_voltages.items():
+                mag_grid.loc[faulted, bus_name] = abs(V)
+                ang_grid.loc[faulted, bus_name] = np.angle(V, deg=True)
+
+        # Voltage magnitudes -- 4 decimals everywhere
+        self._print_section_header("Post-Fault Bus Voltage Magnitudes (pu)")
+        print("  rows = faulted bus   |   cols = bus being measured\n")
+        print(mag_grid.to_string(float_format=lambda x: f"{x:8.4f}"))
+        print()
+
+        # Voltage angles -- 2 decimals everywhere
+        self._print_section_header("Post-Fault Bus Voltage Angles (deg)")
+        print("  rows = faulted bus   |   cols = bus being measured\n")
+        print(ang_grid.to_string(float_format=lambda x: f"{x:8.2f}"))
+        print()
+
+        # Fault currents
+        self._print_section_header("Fault Currents (bolted 3-phase)")
+        rows = []
+        for bus_name, If in fault_currents.items():
+            rows.append({
+                "Faulted Bus": bus_name,
+                "|If| (pu)": abs(If),
+                "Angle (deg)": np.angle(If, deg=True),
+            })
+        df = pd.DataFrame(rows).set_index("Faulted Bus")
+        print(df.to_string(
+            formatters={
+                "|If| (pu)":   lambda x: f"{x:10.4f}",
+                "Angle (deg)": lambda x: f"{x:10.2f}",
+            }
+        ))
+        print()
+
+    # ---------- Printing helpers ----------
+    def _print_case_banner(self):
+        bar = "#" * 70
+        print()
+        print(bar)
+        print(f"#  CASE: {self.circuit.name}")
+        print(bar)
+
+    def _print_section_header(self, title):
+        print()
+        print("-" * 70)
+        print(f"  {title}")
+        print("-" * 70)
+
+    def _print_power_flow_results(self):
+        self._print_section_header("Power Flow Results")
+        if not self.converged:
+            print("  Power flow did NOT converge "
+                  "(expected for unloaded validation cases)\n")
             return
 
-        self.print_power_flow_results()
+        print(f"  Converged in {self.iterations} iterations  "
+              f"(max |mismatch| = {self.mismatch_norm:.2e})\n")
 
-        if run_fault:
-            self.print_fault_results()
-
-    def run_power_flow(self):
-        flat_voltages = np.array(
-            [bus.vpu for bus in self.circuit.buses.values()],
-            dtype=float
-        )
-        flat_angles = np.array(
-            [bus.delta for bus in self.circuit.buses.values()],
-            dtype=float
-        )
-
-        self.mismatch_vector = self.circuit.settings.compute_power_mismatch(
-            self.circuit.buses,
-            self.circuit.ybus,
-            flat_voltages,
-            flat_angles
-        )
-
-        self.mismatch_table = self.circuit.settings.compute_mismatch_table(
-            self.circuit.buses,
-            self.circuit.ybus,
-            flat_voltages,
-            flat_angles
-        )
-
-        jac = Jacobian(self.circuit)
-        self.jacobian_matrix = jac.calc_jacobian(
-            self.circuit.buses,
-            self.circuit.ybus,
-            flat_angles,
-            flat_voltages
-        )
-
-        self.jacobian_formatter = JacobianFormat(jac)
-
-        assert self.jacobian_matrix.shape[0] == len(self.mismatch_vector), "Dimension mismatch!"
-        assert self.jacobian_matrix.shape[1] == len(self.mismatch_vector), "Dimension mismatch!"
-
-        self.solved_voltages, self.solved_angles, self.converged, self.iterations = self.pf.solve(
-            tol=0.001,
-            max_iter=50
-        )
-
-        self.mismatch_norm = np.max(np.abs(self.pf.final_mismatch))
-
-        self.solved_mismatch_table = self.circuit.settings.compute_mismatch_table(
-            self.circuit.buses,
-            self.circuit.ybus,
-            self.solved_voltages,
-            self.solved_angles
-        )
-
-    def run_fault_study(self):
-        self.circuit.generators["Gen1"].xd_subtransient = 0.20
-        self.circuit.generators["Gen3"].xd_subtransient = 0.20
-
-        self.pf.calc_ybus_faulted()
-        self.fault_results = self.pf.solve_fault(fault_bus_name=self.fault_bus)
-
-        self.faulted_voltage = abs(self.pf.bus_voltages[self.fault_bus])
-        self.fault_current_mag = abs(self.pf.fault_current)
-
-    def print_power_flow_results(self):
-
-        print("\nMismatch table (flat start):")
-        print(self.mismatch_table.to_string(index=False))
-
-        print("\nJacobian matrix (flat start):")
-        self.jacobian_formatter.print_dataframe()
-
-        print("\nJacobian shape:", self.jacobian_matrix.shape)
-        print("Jacobian dimensions match mismatch vector")
-
-        print("\nSolved Bus Results:")
+        rows = []
         for bus in self.circuit.buses.values():
-            print(f"  {bus.name}: V = {bus.vpu:.5f} pu, angle = {bus.delta:.5f} deg")
+            rows.append({
+                "Bus": bus.name,
+                "V (pu)": bus.vpu,
+                "Angle (deg)": bus.delta,
+            })
+        df = pd.DataFrame(rows).set_index("Bus")
+        print(df.to_string(
+            formatters={
+                "V (pu)":      lambda x: f"{x:8.4f}",
+                "Angle (deg)": lambda x: f"{x:8.2f}",
+            }
+        ))
+        print()
 
-        print(f"\nConverged: {self.converged}")
-        print(f"Iterations: {self.iterations}")
-        print(f"Final mismatch norm: {self.mismatch_norm}")
+    def _print_single_fault_results(self):
+        If = self.pf.fault_current
+        self._print_section_header(
+            f"Fault Study -- bolted 3-phase fault at {self.fault_bus}"
+        )
+        print(f"  Fault current: {abs(If):.4f} pu  "
+              f"(angle {np.angle(If, deg=True):.2f} deg)\n")
 
-        print("\nMismatch table at solution:")
-        print(self.solved_mismatch_table.to_string(index=False))
-
-    def print_fault_results(self):
-        print("\nFault Study Results:")
-        print(self.fault_results.to_string(index=False))
-        print(f"\nFaulted bus: {self.fault_bus}")
-        print(f"Faulted bus voltage: {self.faulted_voltage:.6f} pu")
-        print(f"Fault current magnitude: {self.fault_current_mag:.6f} pu")
+        rows = []
+        for bus_name, V in self.pf.bus_voltages.items():
+            rows.append({
+                "Bus": bus_name,
+                "V (pu)": abs(V),
+                "Angle (deg)": np.angle(V, deg=True),
+            })
+        df = pd.DataFrame(rows).set_index("Bus")
+        print(df.to_string(
+            formatters={
+                "V (pu)":      lambda x: f"{x:8.4f}",
+                "Angle (deg)": lambda x: f"{x:8.2f}",
+            }
+        ))
+        print()

@@ -4,18 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a9d11083-84db-46b3-b5c3-c14606024049" name="Changes" comment="3/3/26 8:51">
-      <change afterPath="$PROJECT_DIR$/solver.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ECE-1774-Project-2.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ECE-1774-Project-2.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="a9d11083-84db-46b3-b5c3-c14606024049" name="Changes" comment="Solver Class Added to Project">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/circuit.py" beforeDir="false" afterPath="$PROJECT_DIR$/circuit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/load.py" beforeDir="false" afterPath="$PROJECT_DIR$/load.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/powerflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/powerflow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExportToHTMLSettings">
+    <option name="printScope" value="4" />
+    <option name="OUTPUT_DIRECTORY" value="$USER_HOME$/Downloads" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -27,7 +30,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="Milestone8" />
+        <entry key="$PROJECT_DIR$" value="Milestone9" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -80,7 +83,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "Milestone9",
+    "git-widget-placeholder": "Project__3__Mike",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "C:/Users/gideo/OneDrive/Documents/GitHub/ECE-1774-Project-2",
     "node.js.detected.package.eslint": "true",
@@ -155,7 +158,15 @@
       <option name="project" value="LOCAL" />
       <updated>1774548040819</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Solver Class Added to Project">
+      <option name="closed" value="true" />
+      <created>1776378544460</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1776378544460</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -165,7 +176,8 @@
     <MESSAGE value="3/3/26" />
     <MESSAGE value="3/3/26 8:17" />
     <MESSAGE value="3/3/26 8:51" />
-    <option name="LAST_COMMIT_MESSAGE" value="3/3/26 8:51" />
+    <MESSAGE value="Solver Class Added to Project" />
+    <option name="LAST_COMMIT_MESSAGE" value="Solver Class Added to Project" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/ECE_1774_Project_2$main.coverage" NAME="main Coverage Results" MODIFIED="1770903680931" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

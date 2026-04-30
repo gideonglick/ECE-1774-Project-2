@@ -51,12 +51,16 @@ class Circuit:
             raise ValueError(f"bus {bus1_name} does not exist")
         self.generators[name] = Generator(name, bus1_name, voltage_setpoint, mw_setpoint, self.settings, xd_subtransient)
 
-    def add_load(self, name: str, bus1_name: str, mw: float, mvar: float):
+    def add_load(self, name: str, bus1_name: str, mw: float, mvar: float,
+                 zp: float = 0.0, ip: float = 0.0, pp: float = 1.0,
+                 zq: float = 0.0, iq: float = 0.0, pq: float = 1.0):
         if name in self.loads:
             raise ValueError(f"load {name} already exists")
         if bus1_name not in self.buses:
             raise ValueError(f"bus {bus1_name} does not exist")
-        self.loads[name] = Load(name, bus1_name, mw, mvar)
+
+        self.loads[name] = Load(name, bus1_name, mw, mvar, self.settings,
+                                zp, ip, pp, zq, iq, pq)
 
     def calc_ybus(self):
         bus_names = list(self.buses.keys())

@@ -36,8 +36,8 @@ if __name__ == "__main__":
     # Loads and generators
     circuit1.loads["Load2"] = Load(
         "Load2", "Bus 2", 900.0, 420.0, circuit1.settings,
-        zp=0.3, ip=0.2, pp=0.5,
-        zq=0.3, iq=0.2, pq=0.5
+        zp=0.2, ip=0.3, pp=0.5,
+        zq=0.2, iq=0.3, pq=0.5
     )
 
     circuit1.generators["Gen1"] = Generator(
@@ -50,8 +50,8 @@ if __name__ == "__main__":
 
     circuit1.loads["Load3"] = Load(
         "Load3", "Bus 3", 80.0, 40.0, circuit1.settings,
-        zp=0.3, ip=0.2, pp=0.5,
-        zq=0.3, iq=0.2, pq=0.5
+        zp=0.2, ip=0.3, pp=0.5,
+        zq=0.2, iq=0.3, pq=0.5
     )
 
     solver = Solver(circuit1)

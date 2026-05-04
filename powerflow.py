@@ -76,7 +76,6 @@ class PowerFlow:
 
     # ---------- Fault Study ----------
     def calc_ybus_faulted(self):
-        """Rebuild clean Ybus, then stamp generator subtransient shunts."""
         self.circuit.calc_ybus()
         bus_names = list(self.circuit.buses.keys())
         bus_index = {name: i for i, name in enumerate(bus_names)}
@@ -119,7 +118,7 @@ class PowerFlow:
         # Subtransient fault current
         self.fault_current = vf / (Z_nn + fault_impedance)
 
-        # Post-fault bus voltages via Thevenin superposition
+        # Post-fault bus voltages
         self.bus_voltages = {}
         for bus_name in self.circuit.buses.keys():
             Z_kn = self.zbus.loc[bus_name, fault_bus_name]

@@ -19,16 +19,7 @@ class Solver:
             fault_all_buses: bool = False,
             prefault_voltage: complex = None,
             skip_power_flow: bool = False):
-        """
-        run_fault        : run a fault study after the power flow
-        fault_all_buses  : fault every bus one at a time, print N x N grid
-        prefault_voltage : flat complex phasor (e.g. 1.05+0j) applied at all
-                           buses for the fault study. If None, use power-flow
-                           solution.
-        skip_power_flow  : skip Newton-Raphson entirely. Use for lossless
-                           + unloaded systems (Example 8.5) where NR would
-                           fail and there is nothing to solve.
-        """
+
         self._print_case_banner()
 
         # --- Power Flow (optional) ---
@@ -65,6 +56,19 @@ class Solver:
     def _run_fault_all_buses(self, prefault_voltage=None):
         bus_names = list(self.circuit.buses.keys())
 
+        # Build Ybus and Zbus once up front and display them
+        ybus_faulted = self.pf.calc_ybus_faulted()
+        zbus = self.pf.calc_zbus(ybus_faulted)
+
+        self._print_section_header("Faulted Ybus (pu)")
+        print("  Base Ybus with generator subtransient reactances stamped\n")
+        print(self._format_complex_df(ybus_faulted))
+        print()
+
+        self._print_section_header("Zbus = inv(Ybus)  (pu)")
+        print(self._format_complex_df(zbus))
+        print()
+
         mag_grid = pd.DataFrame(index=bus_names, columns=bus_names, dtype=float)
         ang_grid = pd.DataFrame(index=bus_names, columns=bus_names, dtype=float)
         fault_currents = {}
@@ -73,18 +77,20 @@ class Solver:
             self.pf.solve_fault(faulted, prefault_voltage=prefault_voltage)
             fault_currents[faulted] = self.pf.fault_current
             for bus_name, V in self.pf.bus_voltages.items():
-                mag_grid.loc[faulted, bus_name] = abs(V)
-                ang_grid.loc[faulted, bus_name] = np.angle(V, deg=True)
+                # Row = bus being measured, Col = faulted bus
+                # (matches Glover Table 8.7 layout)
+                mag_grid.loc[bus_name, faulted] = abs(V)
+                ang_grid.loc[bus_name, faulted] = np.angle(V, deg=True)
 
         # Voltage magnitudes -- 4 decimals everywhere
         self._print_section_header("Post-Fault Bus Voltage Magnitudes (pu)")
-        print("  rows = faulted bus   |   cols = bus being measured\n")
+        print("  rows = bus being measured   |   cols = faulted bus\n")
         print(mag_grid.to_string(float_format=lambda x: f"{x:8.4f}"))
         print()
 
         # Voltage angles -- 2 decimals everywhere
         self._print_section_header("Post-Fault Bus Voltage Angles (deg)")
-        print("  rows = faulted bus   |   cols = bus being measured\n")
+        print("  rows = bus being measured   |   cols = faulted bus\n")
         print(ang_grid.to_string(float_format=lambda x: f"{x:8.2f}"))
         print()
 
@@ -107,6 +113,18 @@ class Solver:
         print()
 
     # ---------- Printing helpers ----------
+    @staticmethod
+    def _format_complex_df(df):
+        """Format a complex-valued DataFrame with aligned real+imag parts."""
+        def fmt(z):
+            r, i = z.real, z.imag
+            # Keep very small values clean (floating-point dust -> 0)
+            if abs(r) < 1e-9: r = 0.0
+            if abs(i) < 1e-9: i = 0.0
+            sign = "+" if i >= 0 else "-"
+            return f"{r:8.4f} {sign} j{abs(i):7.4f}"
+        return df.map(fmt).to_string()
+
     def _print_case_banner(self):
         bar = "#" * 70
         print()
